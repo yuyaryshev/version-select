@@ -7,6 +7,7 @@ const FILE = 'package.json';
 const PATCH = "Patch";
 const MINOR = "Minor";
 const MAJOR = "Major";
+const KEEP = "Keep";
 
 const getAction = (question, values) => {
     console.log(question);
@@ -35,6 +36,8 @@ const getNewVersion = (version, action) => {
             version[1] = 0;
             version[2] = 0;
             break;
+        case KEEP:
+            break;
     }
 
     return version.join('.');
@@ -45,14 +48,23 @@ const setNewVersion = async (fileData, version) => {
 }
 
 const updateVersion = async () => {
-    const action = await getAction('Semantic version:'.green, [PATCH, MINOR, MAJOR]);
     const fileData = JSON.parse(fs.readFileSync(FILE));
+    const currentVersion = getCurrentVersion(fileData);
+    const current = fileData.version;
+    const action = await getAction('Semantic version:'.green, [
+        `${PATCH} ${current} -> ${getNewVersion([...currentVersion], PATCH)}`,
+        `${MINOR} ${current} -> ${getNewVersion([...currentVersion], MINOR)}`,
+        `${MAJOR} ${current} -> ${getNewVersion([...currentVersion], MAJOR)}`,
+        `${KEEP} ${current}`
+    ]);
+    const currentAction = action.split(' ')[0];
+
+    if(currentAction == KEEP) return;
 
     const { size } = fs.statSync(FILE);
     if (!size) { return new Error('Incorrect path') }
 
-    const currentVersion = getCurrentVersion(fileData);
-    const newVersion = getNewVersion(currentVersion, action);
+    const newVersion = getNewVersion(currentVersion, currentAction);
     console.log(newVersion.yellow);
     return setNewVersion(fileData, newVersion);
 }

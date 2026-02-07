@@ -23,5 +23,9 @@ describe('Main', () => {
             const result = getNewVersion([3, 4, 5], 'Major');
             assert.equal(result, "4.0.0");
         });
+        it('should keep current version for Keep action', () => {
+            const result = getNewVersion([3, 4, 5], 'Keep');
+            assert.equal(result, "3.4.5");
+        });
     });
 });
